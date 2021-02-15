@@ -1,0 +1,46 @@
+This is the description of my functions which help you to trace process without getting deep inside ptrace(). first you need to attach to process you should use:
+
+int attach_process(pid_t pid)
+
+it try to attach to the process. Return 0 on succefull attach or -1 if it failed. 
+Reasons to fail:
+1) You don't have permissions to attach to this process.
+2) Process is dead or pid is invalid.
+
+
+
+After this you can use 
+struct ret_sys_info wait_for_syscall(int sec) 
+
+struct ret_sys_info {
+	pid_t pid; // process id which change his state
+	struct user_regs_struct registers; // registers of this process (only for SYSCALL)
+	int retval; 
+}
+
+function returns stucture which describe what happens.
+
+This function is waiting for changeing states of all attached process and return info. You can give argument sec to set timeout on waiting.
+You should look to retval to find out the reason of changing state.
+
+retval can be:
+
+1) ERROR: something went wrong during collection and it is impossible to continue collecting.
+
+2) SYSCALL: that means that right now process with pid .pid from struct ret_sys_info is stopped in syscall and you could see all his registers in .registers. 
+
+3) ATTENTION if process is in syscall:
+	1. You need to continue by yourseld calling ptrace(PTRACE_SYSCALL, pid, 0, 0) (look in example.c)
+	2. SYSCALL will be returned on entry and exit from syscall, so it will be returned twice, you should distinguish by yourself is it entry or exit (function guarantee that first SYSCALL is entry)
+
+4) GROUPSTOP: this means process (and all his threads) was stopped by a signal (SIGSTOP for example)
+
+5) SIGNAL: means this was signal.
+
+6) FORK: process call fork. Look to pid if it is equal 0 then you should ignore this. If it is not equal 0 that is a pid of new process created by fork().
+
+Note: function guarantee that when user get this message parent process still in fork syscall.
+
+7) DEAD: means process with .pid is dead and there is no need to continue tracing it.
+
+8) ALL_DEAD: means all traced process were dead
