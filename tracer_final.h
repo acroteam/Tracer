@@ -23,3 +23,9 @@ struct ret_sys_info {
 int config_attach(pid_t pid);
 int attach_process(pid_t pid);
 struct ret_sys_info wait_for_syscall();
+
+int u_continue_after_syscall(pid_t pid);
+
+int u_set_regs(pid_t pid, struct user_regs_struct* regs);
+
+int u_get_regs(pid_t pid, struct user_regs_struct* regs);

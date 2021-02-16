@@ -178,3 +178,15 @@ exit:
 
 	return ret;
 }
+
+int u_continue_after_syscall(pid_t pid) {
+	return ptrace(PTRACE_SYSCALL, pid, NULL, NULL);
+}
+
+int u_set_regs(pid_t pid, struct user_regs_struct* regs) {
+	return ptrace(PTRACE_SETREGS, pid, NULL, regs);
+}
+
+int u_get_regs(pid_t pid, struct user_regs_struct* regs) {
+	return ptrace(PTRACE_GETREGS, pid, NULL, regs);
+}
