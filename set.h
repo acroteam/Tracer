@@ -16,6 +16,9 @@ struct Set
 	unsigned int len;
 };
 
+typedef struct Set Set;
+
+
 
 struct Set init_set(unsigned int len);
 void delete_set(struct Set *set);

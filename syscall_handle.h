@@ -11,10 +11,6 @@ union machine_word {
 	char buf[sizeof(size_t)];
 };
 
-/*
-tracee_ptr is tracees char pointer, functions get_strlen_arg() and get_str() help to work with this pointer
-
-*/
 
 
 int get_strlen_arg(pid_t pid, unsigned long long int tracee_ptr);

@@ -9,15 +9,13 @@
 #include "tracer_final.h"
 #include "syscall_handle.h"
 
-#define UPDATE_LOOP 100
+#define UPDATE_LOOP 10
+#define TOUT 2
 
 enum syscalls {
 	SYSCALL_OPEN = 2,
 	SYSCALL_OPENAT = 257	
 };
-
-
-typedef struct Set Set;
 
 
 int collect_pids(DIR* dir_ptr, Set* set)
@@ -32,7 +30,6 @@ int collect_pids(DIR* dir_ptr, Set* set)
 		s_inf.pid = strtol(s_dir_ptr->d_name, &ptr, 10);
 		if (ptr && s_dir_ptr->d_name != ptr && *ptr == '\0' && s_inf.pid != my_pid) {
 			s_inf.in_syscall = 0;
-			//printf("%d\n", s_inf.pid);
 			add(set, s_inf);
 			n++;
 		}
@@ -43,10 +40,9 @@ int collect_pids(DIR* dir_ptr, Set* set)
 
 
 
-
 int check_pid(pid_t pid)
 {
-	if (pid < 4000 || pid == getpid() || pid == 2857)
+	if (pid < 7000 || pid == getpid())
 		return 0;
 	return 1;
 }
@@ -70,15 +66,10 @@ int main(int argc, char* argv[], char* envp[])
 	for (i = 0; i < set.len; ++i) {
 		if (!check_pid(set.arr[i].pid))
 			continue;
-		//printf("ATTACH %d?\n", set.arr[i].pid);
-		//scanf("%c%c", &c, &tr);
-		//if (c != 'y')
-		//	continue;
 
 		printf("Attaching %d\n", set.arr[i].pid);
 		if (attach_process(set.arr[i].pid)) {
 			perror("Attach: ");
-			//return 0;
 		}
 	}
 
@@ -98,10 +89,6 @@ int main(int argc, char* argv[], char* envp[])
 			for (i = 0; i < tmp_set.len; ++i) {
 				if (!check_pid(tmp_set.arr[i].pid) || find_pid(&set, tmp_set.arr[i].pid) != -1)
 					continue;
-				//printf("ATTACH %d?\n", set.arr[i].pid);
-				//scanf("%c%c", &c, &tr);
-				//if (c != 'y')
-				//	continue;
 
 				printf("Attaching %d\n", tmp_set.arr[i].pid);
 				if (attach_process(tmp_set.arr[i].pid)) {
@@ -115,13 +102,14 @@ int main(int argc, char* argv[], char* envp[])
 		}
 
 
-		res = wait_for_syscall(2);
+		res = wait_for_syscall(TOUT, &set);
 
 		switch (res.retval) {
 			case SIGNAL:
 				printf("%d: SIGNAL\n", res.pid);
 				break;
 			case TIMEOUT:
+			printf("TO\n");
 				break;
 			case ERROR:
 				return 0;
@@ -180,48 +168,6 @@ int main(int argc, char* argv[], char* envp[])
 
 				u_continue_after_syscall(res.pid);
 				break;
-
-
-				/*for (i = 0; i < n; ++i) {
-
-
-
-
-					if (res.pid == pid[i]) {
-						if (res.registers.orig_rax == -1) {
-							res.registers.rax = -EPERM;
-							u_set_regs(res.pid, &res.registers);
-						}							
-						if ((res.registers.orig_rax == SYSCALL_OPENAT)) {
-							if (openat_handler(pid[i], &res.registers, in_syscalls[i]) == -1)
-								printf("%d: openat_handler failed\n", pid[i]);
-							/*word.num = ptrace(PTRACE_PEEKDATA, res.pid, res.registers.rsi, NULL);
-
-							write(1, word.buf, 8);
-							printf("\n");
-							res.registers.orig_rax = -1;
-							u_set_regs(res.pid, &res.registers);
-						} 
-
-						if ((res.registers.orig_rax == SYSCALL_OPEN)) {
-							if (open_handler(pid[i], &res.registers, in_syscalls[i]) == -1)
-								printf("%d: open_handler failed\n", pid[i]);
-						}
-
-
-						if (in_syscalls[i] == 0) {
-							in_syscalls[i] = 1;
-							printf("%d: Syscall %lld start\n", res.pid, res.registers.orig_rax);
-						}
-						else {
-							in_syscalls[i] = 0;
-							printf("%d: Syscall %lld = %lld\n", res.pid, res.registers.orig_rax, res.registers.rax);
-						
-						break;
-					}
-
-				u_continue_after_syscall(res.pid);
-				break;*/
 			default:
 				printf("Strange res.retval=%d\n", res.retval);
 				return 0;

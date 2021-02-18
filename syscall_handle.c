@@ -7,10 +7,6 @@
 #include "syscall_handle.h"
 
 
-/*
-tracee_ptr is tracees char pointer, functions get_strlen_arg() and get_str() help to work with this pointer
-
-*/
 
 int open_cb(char* path, int flags) {
 	return 1;

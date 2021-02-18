@@ -5,6 +5,8 @@
 #include <sys/user.h>
 #include <sys/reg.h>
 
+#include "set.h"
+
 enum retval {
 	ERROR,
 	SYSCALL,
@@ -24,7 +26,7 @@ struct ret_sys_info {
 
 int config_attach(pid_t pid);
 int attach_process(pid_t pid);
-struct ret_sys_info wait_for_syscall();
+struct ret_sys_info wait_for_syscall(int sec, Set *set);
 
 int u_continue_after_syscall(pid_t pid);
 

@@ -9,7 +9,7 @@ example.o: example.c
 syscall_handle.o: syscall_handle.c
 	gcc -c syscall_handle.c -o syscall_handle.o
 
-tracer_final.o: tracer_final.c
+tracer_final.o: tracer_final.c 
 	gcc -c tracer_final.c -o tracer_final.o
 
 set.o: set.c

@@ -4,9 +4,9 @@
 #include <sys/time.h>
 #include <errno.h>
 #include <signal.h>
+
 #include "tracer_final.h"
-
-
+#include "set.h"
 
 void alrm_handler(int signm) 
 {}
@@ -51,7 +51,7 @@ int attach_process(pid_t pid)
 
 
 
-struct ret_sys_info wait_for_syscall()
+struct ret_sys_info wait_for_syscall(int sec, Set *pid_set)
 {
 	static int x = 0;
 	struct ret_sys_info ret;
@@ -69,9 +69,9 @@ struct ret_sys_info wait_for_syscall()
 
 
 	struct itimerval s_it;	
-	s_it.it_interval.tv_sec = 2;
+	s_it.it_interval.tv_sec = sec;
 	s_it.it_interval.tv_usec = 0;
-	s_it.it_value.tv_sec = 2;
+	s_it.it_value.tv_sec = sec;
 	s_it.it_value.tv_usec = 0;
 
 	struct user_regs_struct regs;
@@ -129,7 +129,9 @@ struct ret_sys_info wait_for_syscall()
 			ret.retval = ERROR;
 			goto exit;
 		};
-		if (ret.pid == 0) {
+		//printf("pid=%d ret.pid=%d\n", pid, ret.pid);
+		if (find_pid(pid_set, pid) == -1) {
+			ret.pid = 0;
 			if (ptrace(PTRACE_SETOPTIONS, pid, NULL, PTRACE_O_TRACESYSGOOD | PTRACE_O_TRACEFORK) == -1 || ptrace(PTRACE_SYSCALL, pid, NULL, 0) == -1) {
 				ret.pid = ERROR;
 			}
