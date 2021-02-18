@@ -13,7 +13,7 @@ tracee_ptr is tracees char pointer, functions get_strlen_arg() and get_str() hel
 */
 
 int open_cb(char* path, int flags) {
-	return 0;
+	return 1;
 }
 
 int get_strlen_arg(pid_t pid, unsigned long long int tracee_ptr)  
